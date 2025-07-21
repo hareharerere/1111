@@ -1,28 +1,50 @@
+// /pages/artworks/[id].js
+
 import { useRouter } from 'next/router';
 import artworks from '../../data/artworks';
 
+export default function ArtworkPage({ artwork }) {
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <div>Loading...</div>;
+  }
+
+  if (!artwork) {
+    return <div>Artwork not found.</div>;
+  }
+
+  return (
+    <div className="p-10">
+      <h1 className="text-3xl font-bold mb-2">{artwork.title}</h1>
+      <p className="mb-2">By: {artwork.artist}</p>
+      <p className="mb-2">Year: {artwork.year}</p>
+      <p className="mb-2">Medium: {artwork.medium}</p>
+      <p className="mb-2">Size: {artwork.size}</p>
+      <p className="mb-2">Price: {artwork.price || 'Not for sale'}</p>
+      <img src={artwork.image} alt={artwork.title} className="mt-4 max-w-full" />
+    </div>
+  );
+}
+
 export async function getStaticPaths() {
-  const paths = artworks.map((art) => ({
-    params: { id: art.id.toString() },
+  const artworkKeys = Object.keys(artworks);
+  const paths = artworkKeys.map((key) => ({
+    params: { id: key },
   }));
-  return { paths, fallback: false };
+
+  return {
+    paths,
+    fallback: true,
+  };
 }
 
 export async function getStaticProps({ params }) {
-  const artwork = artworks.find((a) => a.id.toString() === params.id);
-  return { props: { artwork } };
-}
+  const artwork = artworks[params.id] || null;
 
-export default function ArtworkDetail({ artwork }) {
-  if (!artwork) return <div>作品未找到</div>;
-  return (
-    <div className="p-6">
-      <img src={artwork.image} alt={artwork.title} className="w-full max-w-md" />
-      <h1 className="text-3xl font-bold mt-4">{artwork.title}</h1>
-      <p className="text-gray-700">{artwork.description}</p>
-      <p className="text-sm text-gray-500">创作时间：{artwork.year}</p>
-      <p className="text-sm text-gray-500">媒材：{artwork.medium}</p>
-      <p className="text-sm text-gray-500">尺寸：{artwork.dimensions}</p>
-    </div>
-  );
+  return {
+    props: {
+      artwork,
+    },
+  };
 }
