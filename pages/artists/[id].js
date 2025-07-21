@@ -1,25 +1,45 @@
+// /pages/artists/[id].js
+
 import { useRouter } from 'next/router';
 import artists from '../../data/artists';
 
+export default function ArtistPage({ artist }) {
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <div>Loading...</div>;
+  }
+
+  if (!artist) {
+    return <div>Artist not found.</div>;
+  }
+
+  return (
+    <div className="p-10">
+      <h1 className="text-3xl font-bold mb-4">{artist.name}</h1>
+      <p className="text-lg">{artist.bio}</p>
+    </div>
+  );
+}
+
 export async function getStaticPaths() {
-  const paths = artists.map((artist) => ({
-    params: { id: artist.id.toString() },
+  const artistKeys = Object.keys(artists);
+  const paths = artistKeys.map((key) => ({
+    params: { id: key },
   }));
-  return { paths, fallback: false };
+
+  return {
+    paths,
+    fallback: true, // or false
+  };
 }
 
 export async function getStaticProps({ params }) {
-  const artist = artists.find((a) => a.id.toString() === params.id);
-  return { props: { artist } };
-}
+  const artist = artists[params.id] || null;
 
-export default function ArtistDetail({ artist }) {
-  if (!artist) return <div>艺术家未找到</div>;
-  return (
-    <div className="p-6">
-      <img src={artist.image} alt={artist.name} className="w-32 h-32 rounded-full mb-4" />
-      <h1 className="text-3xl font-bold">{artist.name}</h1>
-      <p className="text-gray-600">{artist.bio}</p>
-    </div>
-  );
+  return {
+    props: {
+      artist,
+    },
+  };
 }
